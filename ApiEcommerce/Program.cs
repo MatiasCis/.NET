@@ -2,7 +2,9 @@ using System.Text;
 using ApiEcommerce.Constants;
 using ApiEcommerce.Repository;
 using ApiEcommerce.Repository.IRepository;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -16,7 +18,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 );
 builder.Services.AddResponseCaching(options =>
 {
-    options.MaximumBodySize = 1024;
+    options.MaximumBodySize = 1024 * 1024;
     options.UseCaseSensitivePaths = true;
 });
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -49,7 +51,11 @@ builder
             ValidateAudience = true,
         };
     });
-builder.Services.AddControllers();
+builder.Services.AddControllers(option =>
+{
+    option.CacheProfiles.Add("Default10", new CacheProfile { Duration = 10 });
+    option.CacheProfiles.Add("Default20", new CacheProfile { Duration = 20 });
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -88,6 +94,22 @@ builder.Services.AddSwaggerGen(options =>
             },
         }
     );
+});
+
+var apiVersioningBuilder = builder.Services.AddApiVersioning(option =>
+{
+    option.AssumeDefaultVersionWhenUnspecified = true;
+    option.DefaultApiVersion = new ApiVersion(1, 0);
+    option.ReportApiVersions = true;
+    option.ApiVersionReader = ApiVersionReader.Combine(
+        new QueryStringApiVersionReader("api-version")
+    );
+});
+
+apiVersioningBuilder.AddApiExplorer(option =>
+{
+    option.GroupNameFormat = "'v'VVV";
+    option.SubstituteApiVersionInUrl = true;
 });
 
 builder.Services.AddCors(options =>
