@@ -4,7 +4,7 @@ using AutoMapper;
 
 namespace ApiEcommerce.Mapping;
 
-public class CategoryProfile: Profile
+public class CategoryProfile : Profile
 {
     public CategoryProfile()
     {

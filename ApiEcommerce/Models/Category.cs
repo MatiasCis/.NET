@@ -10,6 +10,4 @@ public class Category
 
     [Required]
     public DateTime CreationDate { get; set; }
-
-
 }
